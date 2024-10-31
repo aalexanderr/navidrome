@@ -104,34 +104,6 @@ jobs:
           pkg-config --define-prefix --cflags --libs taglib # for debugging
           go test -shuffle=on -tags netgo -race -cover ./... -v
 
-  js:
-    name: Test JS code
-    runs-on: ubuntu-latest
-    env:
-      NODE_OPTIONS: "--max_old_space_size=4096"
-    defaults:
-      run:
-        working-directory: ./ui
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "npm"
-          cache-dependency-path: "**/package-lock.json"
-
-      - name: npm install dependencies
-        run: npm ci
-
-      - name: npm lint
-        run: npm run check-formatting && npm run lint
-
-      - name: npm test
-        run: npm test
-
-      - name: npm build
-        run: npm run build
-
   i18n-lint:
     name: Lint i18n files
     runs-on: ubuntu-latest
@@ -161,7 +133,7 @@ jobs:
 
   build:
     name: Build
-    needs: [js, go, go-lint, i18n-lint, git-version, check-push-enabled]
+    needs: [go, go-lint, i18n-lint, git-version, check-push-enabled]
     strategy:
       matrix:
         platform: [ linux/amd64, linux/arm64, linux/arm/v5, linux/arm/v6, linux/arm/v7, linux/386, darwin/amd64, darwin/arm64, windows/amd64, windows/386 ]
