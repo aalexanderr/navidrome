@@ -6,8 +6,12 @@ on:
     branches:
       - master
     paths:
-      - 'resources/i18n/*.json'
       - '.github/workflows/*.yml'
+      - 'resources/i18n/*.json'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   i18n-lint:

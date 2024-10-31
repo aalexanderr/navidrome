@@ -6,8 +6,12 @@ on:
     branches:
       - master
     paths:
-      - './ui/**'
       - '.github/workflows/*.yml'
+      - './ui/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test-js:
