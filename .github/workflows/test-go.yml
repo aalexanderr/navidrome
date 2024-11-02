@@ -1,0 +1,74 @@
+name: "Test server"
+
+on:
+  workflow_call:
+    inputs:
+      cross_taglib_version:
+        required: true
+        type: string
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/*.yml'
+      - '**.go'
+      - 'go.{mod,sum}'
+      - 'tests/**'
+      - 'crosstaglib.version'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  get-cross-taglib-version:
+    uses: ./.github/workflows/_crosstaglibversion.yml
+
+  go-lint:
+    name: Lint Go code
+    runs-on: ubuntu-latest
+    needs: [get-cross-taglib-version]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download TagLib
+        uses: ./.github/actions/download-taglib
+        with:
+          version: ${{ needs.get-cross-taglib-version.outputs.cross_taglib_version }}
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          problem-matchers: true
+          args: --timeout 2m
+
+      - run: go mod tidy
+      - name: Verify no changes from goimports and go mod tidy
+        run: |
+          git status --porcelain
+          if [ -n "$(git status --porcelain)" ]; then
+            echo 'To fix this check, run "make format" and commit the changes'
+            exit 1
+          fi
+
+  go-test:
+    name: Test Go code
+    runs-on: ubuntu-latest
+    needs: [get-cross-taglib-version, go-lint]
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v4
+
+      - name: Download TagLib
+        uses: ./.github/actions/download-taglib
+        with:
+          version: ${{ needs.get-cross-taglib-version.outputs.cross_taglib_version }}
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Test
+        run: |
+          pkg-config --define-prefix --cflags --libs taglib # for debugging
+          go test -shuffle=on -tags netgo -race -cover ./... -v
