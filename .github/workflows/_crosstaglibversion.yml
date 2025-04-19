@@ -1,0 +1,27 @@
+name: "Get cross taglib version"
+
+on:
+  workflow_call:
+    outputs:
+      cross_taglib_version:
+        description: "Version string for cross taglib"
+        value: ${{ jobs.cross-taglib-version.outputs.cross_taglib_version }}
+
+jobs:
+  cross-taglib-version:
+    name: Get cross taglib version
+    runs-on: ubuntu-latest
+    outputs:
+      cross_taglib_version: ${{ steps.crosstaglibversion.outputs.ctversion }}
+    steps:
+      - uses: actions/checkout@v4 #TODO: do a partial clone
+        with:
+          sparse-checkout: |
+            crosstaglib.version
+          sparse-checkout-cone-mode: false
+      - name: Get cross_taglib_version
+        id: crosstaglibversion
+        run: |
+          TMP=$(<./crosstaglib.version)
+          echo $TMP
+          echo "ctversion=$TMP" >> "$GITHUB_OUTPUT"

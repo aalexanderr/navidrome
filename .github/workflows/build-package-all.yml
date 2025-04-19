@@ -1,0 +1,43 @@
+name: Build and package
+on:
+  workflow_call:
+  workflow_run:
+    workflows:
+      - "Test server"
+      - "Test translation files"
+      - "Test UI"
+    types: [completed]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-binaries:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "TODO: this workflow will only run when available on default repo branch"
+
+  package-deb-rpm:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    needs: [build-binaries]
+    runs-on: ubuntu-latest
+    steps:
+      - run: | 
+          echo "TODO: this workflow will only run when available on default repo branch"
+
+  package-msi:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    needs: [build-binaries]
+    runs-on: ubuntu-latest
+    steps:
+      - run: | 
+          echo "TODO: this workflow will only run when available on default repo branch"
+
+  package-docker:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: | 
+          echo "TODO: this workflow will only run when available on default repo branch"
